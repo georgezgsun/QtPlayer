@@ -29,10 +29,12 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    ../../../Services/ServiceUtils.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    ../../../Services/ServiceUtils.h
 
 FORMS += \
         mainwindow.ui

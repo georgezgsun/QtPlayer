@@ -1,16 +1,25 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "/home/georges/projects/Services/ServiceUtils.h"
 
 #include <QMediaPlayer>
 #include <QVideoWidget>
+
+static string m_GPSTime;
+static string m_GPS;  // the GPS data from GPS service
+static string m_Trigger;  // the trigger data from Trigger service
+static string m_Radar;  // the Radar data from Radar service
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->resize(1000,700);
+    this->resize(1060,615);
+}
 
+bool MainWindow::SetupCameras(int argc, char *argv[])
+{
     QVideoWidget *vw1 = new QVideoWidget(this);
     QVideoWidget *vw2 = new QVideoWidget(this);
     QVideoWidget *vw3 = new QVideoWidget(this);
@@ -21,34 +30,132 @@ MainWindow::MainWindow(QWidget *parent) :
     QMediaPlayer *mp3 = new QMediaPlayer(this);
     QMediaPlayer *mp4 = new QMediaPlayer(this);
 
-    mp1->setMedia(QUrl::fromLocalFile("/home/georges/Videos/10072018172054-Recovered.mp4"));
-    mp2->setMedia(QUrl::fromLocalFile("/home/georges/Videos/10072018101949.wmv"));
-    mp3->setMedia(QUrl::fromLocalFile("/home/georges/Videos/10072018172054-Recovered.mp4"));
-    mp4->setMedia(QUrl::fromLocalFile("/home/georges/Videos/10072018101949.wmv"));
-    mp1->setVideoOutput(vw1);
-    mp2->setVideoOutput(vw2);
-    mp3->setVideoOutput(vw3);
-    mp4->setVideoOutput(vw4);
-    //this->setCentralWidget(vw1);
+    m_Msg = new ServiceUtils(argc, argv);
+    QStringList CameraList {};
+    int ID = 0;
+    int lastID = 0;
+    static string CameraPath;
+    static string CameraName;
+    CameraList << "/home/georges/Videos/10072018172054-Recovered.mp4"
+               << "rtsp://10.0.9.204/type=0&id=1"
+               << "rtsp://10.0.9.203:8554/0"
+               << "rtsp://10.0.9.207:8554/0";
+    CameraList.clear();
+    CameraPath = "rtsp://10.0.9.203:8554/0";
+    // /home/georges/projects/Services-client/bin/x64/Debug/Services-client.out
 
-    vw1->setGeometry(10,20,480,300);
+    m_Msg->LocalMap("ID", &ID);
+    m_Msg->LocalMap("Camera Name", &CameraName);
+    m_Msg->LocalMap("Camera Path", &CameraPath);
+    m_Msg->LocalMap("time", &m_GPSTime);
+    m_Msg->LocalMap("position", &m_GPS);
+    m_Msg->LocalMap("Trigger", &m_Trigger);
+    m_Msg->LocalMap("Radar", &m_Radar);
+
+    if (!m_Msg->StartService())
+    {
+        return -1;
+    }
+
+    m_Msg->SubscribeService("GPS");
+    m_Msg->SubscribeService("Radar");
+    m_Msg->SubscribeService("Trigger");
+
+    ID = 0;
+    m_Msg->QueryConfigures();
+    while (ID < 4)
+    {
+        if (!m_Msg->ChkNewMsg())
+            continue;
+        if (ID == lastID)
+            continue;
+
+        fprintf(stderr, "The camera %d gets a path of %s.\n", ID, CameraPath.c_str());
+        switch (ID)
+        {
+        case 1:
+            mp1->setMedia(QUrl(QString::fromStdString(CameraPath)));
+            break;
+        case 2:
+            mp2->setMedia(QUrl(QString::fromStdString(CameraPath)));
+            break;
+        case 3:
+            mp3->setMedia(QUrl(QString::fromStdString(CameraPath)));
+            break;
+        case 4:
+            mp4->setMedia(QUrl(QString::fromStdString(CameraPath)));
+            break;
+        }
+
+        lastID = ID;
+    }
+
+
+    //mp1->setMedia(QUrl::fromLocalFile("/home/georges/Videos/10072018172054-Recovered.mp4"));
+    //mp1->setMedia(QUrl::fromLocalFile(CameraList.at(0)));
+    //mp2->setMedia(QUrl::fromLocalFile("/home/georges/Videos/10072018101949.wmv"));
+    //mp3->setMedia(QUrl::fromLocalFile("/home/georges/Videos/01-04-recovered.mp4"));
+    //mp2->setMedia(QUrl("rtsp://10.0.9.204/type=0&id=1"));
+    //mp2->setMedia(QUrl("rtsp://10.0.9.221/1/h264major"));
+    //mp2->setMedia(QUrl(CameraList.at(1)));
+    //mp3->setMedia(QUrl("rtsp://10.0.9.203:8554/0"));
+    //mp3->setMedia(QUrl(CameraList.at(2)));
+    //mp4->setMedia(QUrl::fromLocalFile("/home/georges/Videos/00-34-recovered.mp4"));
+    //mp4->setMedia(QUrl("rtsp://10.0.9.207:8554/0"));
+    //mp4->setMedia(QUrl(CameraList.at(3)));
+
+    mp1->setVideoOutput(vw1);
+    vw1->setGeometry(2,20,480,270);
     vw1->show();
     mp1->play();
 
-    vw2->setGeometry(500,20,480,300);
+    mp2->setVideoOutput(vw2);
+    vw2->setGeometry(485,20,480,270);
     vw2->show();
     mp2->play();
 
-    vw3->setGeometry(10,320,480,300);
+    mp3->setVideoOutput(vw3);
+    vw3->setGeometry(2,294,480,270);
     vw3->show();
     mp3->play();
 
-    vw4->setGeometry(500,320,480,300);
+    mp4->setVideoOutput(vw4);
+    vw4->setGeometry(485,294,480,270);
     vw4->show();
     mp4->play();
+
+    ui->GPS->setText("GPS2:xxxx.xxx");
+
+    m_timer = new QTimer(this);
+    connect(m_timer,SIGNAL(timeout()), this, SLOT(ChkMsg()));
+    m_timer->start(1000);
+    return true;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::ChkMsg()
+{
+    size_t type = 1;
+
+    while (type)
+    {
+        type = m_Msg->ChkNewMsg();
+        if (type == CMD_SERVICEDATA)
+        {
+            // show GPS and Trigger data
+            //fprintf(stderr, "GPS position=%s time=%s, Trigger=%s, Radar=%s\n", m_GPS.c_str(), m_GPSTime.c_str(), m_Trigger.c_str(), m_Radar.c_str());
+
+            ui->GPS->setText(QString::fromStdString(m_GPS));
+            ui->Radar->setText(QString::fromStdString(m_GPSTime));
+            ui->Trigger->setText(QString::fromStdString(m_Trigger));
+
+            m_Msg->WatchdogFeed();
+        }
+    }
+
+    return;
 }
