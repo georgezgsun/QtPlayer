@@ -20,15 +20,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
 bool MainWindow::SetupCameras(int argc, char *argv[])
 {
-    QVideoWidget *vw1 = new QVideoWidget(this);
-    QVideoWidget *vw2 = new QVideoWidget(this);
-    QVideoWidget *vw3 = new QVideoWidget(this);
-    QVideoWidget *vw4 = new QVideoWidget(this);
+    vw1 = new QVideoWidget(this);
+    vw2 = new QVideoWidget(this);
+    vw3 = new QVideoWidget(this);
+    vw4 = new QVideoWidget(this);
 
-    QMediaPlayer *mp1 = new QMediaPlayer(this);
-    QMediaPlayer *mp2 = new QMediaPlayer(this);
-    QMediaPlayer *mp3 = new QMediaPlayer(this);
-    QMediaPlayer *mp4 = new QMediaPlayer(this);
+    mp1 = new QMediaPlayer(this);
+    mp2 = new QMediaPlayer(this);
+    mp3 = new QMediaPlayer(this);
+    mp4 = new QMediaPlayer(this);
+
+    m_CameraViewer = 0;
+    m_Recording = false;
+    m_RecState = false;
 
     m_Msg = new ServiceUtils(argc, argv);
     int ID = 0;
@@ -107,6 +111,12 @@ bool MainWindow::SetupCameras(int argc, char *argv[])
     m_timer = new QTimer(this);
     connect(m_timer,SIGNAL(timeout()), this, SLOT(ChkMsg()));
     m_timer->start(500);
+
+    // The camera button
+    connect(ui->Camera, SIGNAL(clicked()), this, SLOT(SwitchCamera()));
+
+    // The record button
+    connect(ui->Record, SIGNAL(clicked()), this, SLOT(Rec()));
     return true;
 }
 
@@ -132,5 +142,115 @@ void MainWindow::ChkMsg()
         }
     }
 
+    if (m_Recording)
+    {
+        m_RecState = !m_RecState;
+        if (m_RecState)
+            ui->Record->setStyleSheet("border-image: url(:/Recording-94x94.png);");
+        else
+            ui->Record->setStyleSheet("border-image: url(:/Record-94x94.png);");
+    }
+    else
+        ui->Record->setStyleSheet("border-image: url(:/Record-94x94.png);");
+
+    return;
+}
+
+void MainWindow::SwitchCamera()
+{
+    m_CameraViewer++;
+
+    switch (m_CameraViewer)
+    {
+    case 0:
+    case 5:
+        vw1->setGeometry(2,20,480,270);
+        vw1->show();
+        mp1->play();
+
+        vw2->setGeometry(485,20,480,270);
+        vw2->show();
+        mp2->play();
+
+        vw3->setGeometry(2,294,480,270);
+        vw3->show();
+        mp3->play();
+
+        vw4->setGeometry(485,294,480,270);
+        vw4->show();
+        mp4->play();
+
+        m_CameraViewer = 0;
+        break;
+
+    case 1:
+        vw1->setGeometry(2, 20, 960, 540);
+        vw1->show();
+        mp1->play();
+
+        vw2->hide();
+        mp2->pause();
+
+        vw3->hide();
+        mp3->pause();
+
+        vw4->hide();
+        mp4->pause();
+        break;
+
+    case 2:
+        vw1->hide();
+        mp1->pause();
+
+        vw2->setGeometry(2, 20, 960, 540);
+        vw2->show();
+        mp2->play();
+
+        vw3->hide();
+        mp3->pause();
+
+        vw4->hide();
+        mp4->pause();
+        break;
+
+    case 3:
+        vw1->hide();
+        mp1->pause();
+
+        vw2->hide();
+        mp2->pause();
+
+        vw3->setGeometry(2, 20, 960, 540);
+        vw3->show();
+        mp3->play();
+
+        vw4->hide();
+        mp4->pause();
+        break;
+
+    case 4:
+        vw1->hide();
+        mp1->pause();
+
+        vw2->hide();
+        mp2->pause();
+
+        vw3->hide();
+        mp3->pause();
+
+        vw4->setGeometry(2, 20, 960, 540);
+        vw4->show();
+        mp4->play();
+        break;
+
+    default:
+        m_CameraViewer = 0;
+    }
+    return;
+}
+
+void MainWindow::Rec()
+{
+    m_Recording = ! m_Recording;
     return;
 }

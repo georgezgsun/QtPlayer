@@ -24,9 +24,26 @@ public:
 
 public slots:
     void ChkMsg();
+    void SwitchCamera();
+    void Rec();
 
 private:
     Ui::MainWindow *ui;
+
+    QVideoWidget *vw1;
+    QVideoWidget *vw2;
+    QVideoWidget *vw3;
+    QVideoWidget *vw4;
+
+    QMediaPlayer *mp1;
+    QMediaPlayer *mp2;
+    QMediaPlayer *mp3;
+    QMediaPlayer *mp4;
+
+    int m_CameraViewer;
+    bool m_Recording;
+    bool m_RecState;
+
     QTimer *m_timer;  // timer to check the new message
     ServiceUtils *m_Msg;  // the messenger
 
