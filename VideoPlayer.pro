@@ -43,3 +43,26 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    Info-94x94.png \
+    Photo-94x94.png \
+    Playback-94x94.png \
+    Radar-icon.png \
+    Record-94x94.png \
+    Recording-72x72.png \
+    Recording-94x94.png \
+    Settings-94x94.png \
+    SwitchCamera-94x94.png \
+    Info-94x94.png \
+    Photo-94x94.png \
+    Playback-94x94.png \
+    Radar-icon.png \
+    Record-94x94.png \
+    Recording-72x72.png \
+    Recording-94x94.png \
+    Settings-94x94.png \
+    SwitchCamera-94x94.png
+
+RESOURCES += \
+    videoplayer.qrc

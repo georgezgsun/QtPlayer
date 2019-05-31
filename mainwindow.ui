@@ -85,15 +85,12 @@
      <rect>
       <x>970</x>
       <y>0</y>
-      <width>81</width>
-      <height>81</height>
+      <width>91</width>
+      <height>91</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(136, 138, 133);</string>
-    </property>
-    <property name="text">
-     <string>Record</string>
+     <string notr="true">border-image: url(:/Record-94x94.png);</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Camera">
@@ -101,18 +98,15 @@
      <rect>
       <x>970</x>
       <y>100</y>
-      <width>81</width>
-      <height>81</height>
+      <width>91</width>
+      <height>91</height>
      </rect>
     </property>
     <property name="autoFillBackground">
      <bool>false</bool>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(136, 138, 133);</string>
-    </property>
-    <property name="text">
-     <string>Camera</string>
+     <string notr="true">border-image: url(:/SwitchCamera-94x94.png);</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Review">
@@ -120,63 +114,51 @@
      <rect>
       <x>970</x>
       <y>200</y>
-      <width>81</width>
+      <width>91</width>
       <height>81</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(136, 138, 133);</string>
-    </property>
-    <property name="text">
-     <string>Review</string>
+     <string notr="true">border-image: url(:/Playback-94x94.png);</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Photo">
     <property name="geometry">
      <rect>
       <x>970</x>
-      <y>300</y>
-      <width>81</width>
+      <y>290</y>
+      <width>91</width>
       <height>81</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(136, 138, 133);</string>
-    </property>
-    <property name="text">
-     <string>Photo</string>
+     <string notr="true">border-image: url(:/Photo-94x94.png);</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Settings">
     <property name="geometry">
      <rect>
       <x>970</x>
-      <y>400</y>
-      <width>81</width>
+      <y>380</y>
+      <width>91</width>
       <height>81</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(136, 138, 133);</string>
-    </property>
-    <property name="text">
-     <string>Settings</string>
+     <string notr="true">border-image: url(:/Settings-94x94.png);</string>
     </property>
    </widget>
    <widget class="QPushButton" name="Menu">
     <property name="geometry">
      <rect>
       <x>970</x>
-      <y>500</y>
-      <width>81</width>
+      <y>470</y>
+      <width>91</width>
       <height>81</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(136, 138, 133);</string>
-    </property>
-    <property name="text">
-     <string>Menu</string>
+     <string notr="true">border-image: url(:/Info-94x94.png);</string>
     </property>
    </widget>
   </widget>

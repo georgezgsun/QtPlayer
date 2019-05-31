@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Info-94x94.png</file>
+        <file>Photo-94x94.png</file>
+        <file>Playback-94x94.png</file>
+        <file>Radar-icon.png</file>
+        <file>Record-94x94.png</file>
+        <file>Recording-72x72.png</file>
+        <file>Recording-94x94.png</file>
+        <file>Settings-94x94.png</file>
+        <file>SwitchCamera-94x94.png</file>
+    </qresource>
+</RCC>
