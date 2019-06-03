@@ -9,6 +9,7 @@ static string m_GPSTime;
 static string m_GPS;  // the GPS data from GPS service
 static string m_Trigger;  // the trigger data from Trigger service
 static string m_Radar;  // the Radar data from Radar service
+static string m_lastTrigger{};
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -24,11 +25,13 @@ bool MainWindow::SetupCameras(int argc, char *argv[])
     vw2 = new QVideoWidget(this);
     vw3 = new QVideoWidget(this);
     vw4 = new QVideoWidget(this);
+    vw5 = new QVideoWidget(this);
 
     mp1 = new QMediaPlayer(this);
     mp2 = new QMediaPlayer(this);
     mp3 = new QMediaPlayer(this);
     mp4 = new QMediaPlayer(this);
+    mp5 = new QMediaPlayer(this);
 
     m_CameraViewer = 0;
     m_Recording = false;
@@ -106,7 +109,11 @@ bool MainWindow::SetupCameras(int argc, char *argv[])
     vw4->show();
     mp4->play();
 
-    ui->GPS->setText("GPS2:xxxx.xxx");
+    mp5->setMedia(QUrl::fromLocalFile("/home/georges/Videos/10072018172054-Recovered.mp4"));
+    mp5->setVideoOutput(vw5);
+    vw5->setGeometry(2,20,960,540);
+    vw5->hide();
+    mp5->pause();
 
     m_timer = new QTimer(this);
     connect(m_timer,SIGNAL(timeout()), this, SLOT(ChkMsg()));
@@ -117,6 +124,9 @@ bool MainWindow::SetupCameras(int argc, char *argv[])
 
     // The record button
     connect(ui->Record, SIGNAL(clicked()), this, SLOT(Rec()));
+
+    // The review button
+    connect(ui->Review, SIGNAL(clicked()), this, SLOT(Review()));
     return true;
 }
 
@@ -128,15 +138,32 @@ MainWindow::~MainWindow()
 void MainWindow::ChkMsg()
 {
     size_t type = 1;
+    long GPSChannel = m_Msg->GetServiceChannel("GPS");
+    long TriggerChannel = m_Msg->GetServiceChannel("Trigger");
+    long RadarChannel = m_Msg->GetServiceChannel("Radar");
 
     while (type)
     {
         type = m_Msg->ChkNewMsg();
         if (type == CMD_SERVICEDATA)
         {
-            ui->GPS->setText(QString::fromStdString(m_GPS));
-            ui->Radar->setText(QString::fromStdString(m_GPSTime));
-            ui->Trigger->setText(QString::fromStdString(m_Trigger));
+
+            if (m_Msg->m_MsgChn == GPSChannel)
+            {
+                ui->GPS->setText(QString::fromStdString(m_GPS));
+                ui->Radar->setText(QString::fromStdString(m_GPSTime));
+            }
+            else if (m_Msg->m_MsgChn == TriggerChannel)
+            {
+                ui->Trigger->setText(QString::fromStdString(m_Trigger));
+                if (m_Trigger.compare(m_lastTrigger))
+                {
+                    m_Msg->Log("Triggers updated to " + m_Trigger);
+                    m_lastTrigger = m_Trigger;
+                }
+            }
+            else if (m_Msg->m_MsgChn == RadarChannel)
+                continue;
 
             m_Msg->WatchdogFeed();
         }
@@ -159,6 +186,8 @@ void MainWindow::ChkMsg()
 void MainWindow::SwitchCamera()
 {
     m_CameraViewer++;
+    mp5->stop();
+    vw5->hide();
 
     switch (m_CameraViewer)
     {
@@ -185,62 +214,62 @@ void MainWindow::SwitchCamera()
 
     case 1:
         vw1->setGeometry(2, 20, 960, 540);
-        vw1->show();
         mp1->play();
+        vw1->show();
 
-        vw2->hide();
         mp2->pause();
+        vw2->hide();
 
-        vw3->hide();
         mp3->pause();
+        vw3->hide();
 
-        vw4->hide();
         mp4->pause();
+        vw4->hide();
         break;
 
     case 2:
-        vw1->hide();
         mp1->pause();
+        vw1->hide();
 
         vw2->setGeometry(2, 20, 960, 540);
-        vw2->show();
         mp2->play();
+        vw2->show();
 
-        vw3->hide();
         mp3->pause();
+        vw3->hide();
 
-        vw4->hide();
         mp4->pause();
+        vw4->hide();
         break;
 
     case 3:
-        vw1->hide();
         mp1->pause();
+        vw1->hide();
 
-        vw2->hide();
         mp2->pause();
+        vw2->hide();
 
         vw3->setGeometry(2, 20, 960, 540);
-        vw3->show();
         mp3->play();
+        vw3->show();
 
-        vw4->hide();
         mp4->pause();
+        vw4->hide();
         break;
 
     case 4:
-        vw1->hide();
         mp1->pause();
+        vw1->hide();
 
-        vw2->hide();
         mp2->pause();
+        vw2->hide();
 
-        vw3->hide();
         mp3->pause();
+        vw3->hide();
 
         vw4->setGeometry(2, 20, 960, 540);
-        vw4->show();
         mp4->play();
+        vw4->show();
         break;
 
     default:
@@ -252,5 +281,45 @@ void MainWindow::SwitchCamera()
 void MainWindow::Rec()
 {
     m_Recording = ! m_Recording;
+    if (m_Recording)
+    {
+        m_Msg->Log("User start a new recording by click on the Record button of the GUI.");
+        m_Msg->SndCmd("Record=start", "Recorder");
+    }
+    else
+    {
+        m_Msg->Log(("User stop the recording by click on the Record button of the GUI."));
+        m_Msg->SndCmd("Record=stop", "Recorder");
+    }
+    return;
+}
+
+void MainWindow::Review()
+{
+    // Hide all the camera live stream players
+    mp1->pause();
+    vw1->hide();
+
+    mp2->pause();
+    vw2->hide();
+
+    mp3->pause();
+    vw3->hide();
+
+    mp4->pause();
+    vw4->hide();
+
+    // Play the review video
+    mp5->play();
+    vw5->show();
+
+    return;
+}
+
+void MainWindow::TakePhoto()
+{
+    m_Msg->Log(("User take an extra photo by click on the Photo button of the GUI."));
+    m_Msg->SndCmd("TakeAPhoto", "Recorder");
+
     return;
 }

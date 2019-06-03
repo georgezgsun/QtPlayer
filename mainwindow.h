@@ -26,6 +26,8 @@ public slots:
     void ChkMsg();
     void SwitchCamera();
     void Rec();
+    void Review();
+    void TakePhoto();
 
 private:
     Ui::MainWindow *ui;
@@ -34,11 +36,13 @@ private:
     QVideoWidget *vw2;
     QVideoWidget *vw3;
     QVideoWidget *vw4;
+    QVideoWidget *vw5;
 
     QMediaPlayer *mp1;
     QMediaPlayer *mp2;
     QMediaPlayer *mp3;
     QMediaPlayer *mp4;
+    QMediaPlayer *mp5;
 
     int m_CameraViewer;
     bool m_Recording;
