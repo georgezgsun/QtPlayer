@@ -27,15 +27,23 @@ bool MainWindow::SetupCameras(int argc, char *argv[])
     vw4 = new QVideoWidget(this);
     vw5 = new QVideoWidget(this);
 
-    mp1 = new QMediaPlayer(this);
-    mp2 = new QMediaPlayer(this);
-    mp3 = new QMediaPlayer(this);
-    mp4 = new QMediaPlayer(this);
+    vw1->setAspectRatioMode(Qt::IgnoreAspectRatio);
+    vw2->setAspectRatioMode(Qt::IgnoreAspectRatio);
+    vw3->setAspectRatioMode(Qt::IgnoreAspectRatio);
+    vw4->setAspectRatioMode(Qt::IgnoreAspectRatio);
+    vw5->setAspectRatioMode(Qt::IgnoreAspectRatio);
+
+    mp1 = new QMediaPlayer(this, QMediaPlayer::StreamPlayback);
+    mp2 = new QMediaPlayer(this, QMediaPlayer::StreamPlayback);
+    mp3 = new QMediaPlayer(this, QMediaPlayer::StreamPlayback);
+    mp4 = new QMediaPlayer(this, QMediaPlayer::StreamPlayback);
     mp5 = new QMediaPlayer(this);
 
     m_CameraViewer = 0;
     m_Recording = false;
     m_RecState = false;
+    m_GPSTime = "";
+    m_Trigger = "";
 
     m_Msg = new ServiceUtils(argc, argv);
     int ID = 0;
@@ -151,7 +159,10 @@ void MainWindow::ChkMsg()
             if (m_Msg->m_MsgChn == GPSChannel)
             {
                 ui->GPS->setText(QString::fromStdString(m_GPS));
-                ui->Radar->setText(QString::fromStdString(m_GPSTime));
+                if (m_GPSTime.empty())
+                    ui->Radar->setText("hh:mm:ss");
+                else
+                    ui->Radar->setText(QString::fromStdString(m_GPSTime));
             }
             else if (m_Msg->m_MsgChn == TriggerChannel)
             {
@@ -162,8 +173,6 @@ void MainWindow::ChkMsg()
                     m_lastTrigger = m_Trigger;
                 }
             }
-            else if (m_Msg->m_MsgChn == RadarChannel)
-                continue;
 
             m_Msg->WatchdogFeed();
         }
@@ -173,12 +182,50 @@ void MainWindow::ChkMsg()
     {
         m_RecState = !m_RecState;
         if (m_RecState)
+        {
             ui->Record->setStyleSheet("border-image: url(:/Recording-94x94.png);");
+            m_Msg->SndCmd("TurnLEDOn", "GPIO");
+        }
         else
+        {
             ui->Record->setStyleSheet("border-image: url(:/Record-94x94.png);");
+            m_Msg->SndCmd("TurnLEDOff", "GPIO");
+        }
     }
-    else
-        ui->Record->setStyleSheet("border-image: url(:/Record-94x94.png);");
+
+    switch (m_CameraViewer)
+    {
+    case 0:
+        if (mp1->state() == QMediaPlayer::StoppedState)
+            mp1->play();
+        if (mp2->state() == QMediaPlayer::StoppedState)
+            mp2->play();
+        if (mp3->state() == QMediaPlayer::StoppedState)
+            mp3->play();
+        if (mp4->state() == QMediaPlayer::StoppedState)
+            mp4->play();
+        break;
+
+    case 1:
+        if (mp1->state() == QMediaPlayer::StoppedState)
+            mp1->play();
+        break;
+
+    case 2:
+        if (mp2->state() == QMediaPlayer::StoppedState)
+            mp2->play();
+        break;
+
+    case 3:
+        if (mp3->state() == QMediaPlayer::StoppedState)
+            mp3->play();
+        break;
+
+    case 4:
+        if (mp4->state() == QMediaPlayer::StoppedState)
+            mp4->play();
+        break;
+    }
 
     return;
 }
@@ -284,13 +331,16 @@ void MainWindow::Rec()
     if (m_Recording)
     {
         m_Msg->Log("User start a new recording by click on the Record button of the GUI.");
-        m_Msg->SndCmd("Record=start", "Recorder");
+        //m_Msg->SndCmd("Record=start", "Recorder");
     }
     else
     {
         m_Msg->Log(("User stop the recording by click on the Record button of the GUI."));
-        m_Msg->SndCmd("Record=stop", "Recorder");
+        //m_Msg->SndCmd("Record=stop", "Recorder");
+        m_Msg->SndCmd("TurnLEDOff", "GPIO");
+        ui->Record->setStyleSheet("border-image: url(:/Record-94x94.png);");
     }
+
     return;
 }
 
